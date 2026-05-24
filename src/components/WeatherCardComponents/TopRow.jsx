@@ -20,20 +20,20 @@ export default function TopRow({ city, country }) {
   });
 
   return (
-    <div className="d-flex justify-content-between align-items-start mb-4">
+    <div className="d-flex justify-content-between align-items-start">
       {/* Sol: Konum */}
       <div>
-        <div className="d-flex align-items-center gap-2 fw-bold text-white fs-5">
-          <i className="bi bi-geo-alt-fill text-danger" />
+        <div className="loc-name">
+          <i className="bi bi-geo-alt-fill" />
           {city}
         </div>
-        <small className="text-white-50 ms-4">{country} · Türkiye</small>
+        <div className="loc-sub">{country} · Türkiye</div>
       </div>
 
       {/* Sağ: Saat */}
-      <div className="text-end">
-        <div className="fw-bold text-info fs-5">{clock}</div>
-        <small className="text-white-50">{date}</small>
+      <div>
+        <div className="clock">{clock}</div>
+        <div className="clock-date">{date}</div>
       </div>
     </div>
   );

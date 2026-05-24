@@ -1,12 +1,10 @@
 export default function Header({ children }) {
   return (
-    <div id="header">
-      <nav
-        className="navbar navbar-expand-lg bg-dark border-bottom border-body"
-        data-bs-theme="dark"
-      >
-        <div className="container">{children}</div>
-      </nav>
-    </div>
+    <header className="site-header">
+      <div className="container">
+        {children}
+        <span className="header-tag">İstanbul · 41.0°N 28.9°E</span>
+      </div>
+    </header>
   );
 }

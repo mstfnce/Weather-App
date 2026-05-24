@@ -5,15 +5,7 @@ import StatGrid from "./StatGrid";
 
 export default function WeatherCard({ weather }) {
   return (
-    <div
-      className="rounded-4 border border-white border-opacity-10 p-4  "
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        width: "100%",
-      }}
-    >
+    <div className="panel panel--hero">
       <TopRow city={weather.city} country={weather.country} />
       <HeroRow
         temp={weather.temp}
@@ -21,9 +13,13 @@ export default function WeatherCard({ weather }) {
         tempLow={weather.low}
         feelsLike={weather.feelsLike}
         condition={weather.condition}
-        icon={<img src={weather.icon} alt={weather.condition} />}
+        icon={
+          weather.icon ? (
+            <img src={weather.icon} alt={weather.condition} className="hero-icon" />
+          ) : null
+        }
       />
-      <hr className="border-white border-opacity-10 my-3" />
+      <hr className="hairline" />
       <StatGrid
         humidity={weather.humidity}
         wind={weather.wind}

@@ -1,67 +1,53 @@
 export default function DailyForecast({ items = [] }) {
+  // Tüm günlerin global min/max'ı — aralık çubuklarını ölçeklemek için
+  const temps = items.flatMap((it) =>
+    [it.min, it.max].filter((t) => typeof t === "number"),
+  );
+  const gMin = temps.length ? Math.min(...temps) : 0;
+  const gMax = temps.length ? Math.max(...temps) : 1;
+  const span = gMax - gMin || 1;
+
   return (
-    <div
-      className="rounded-4 border border-white border-opacity-10 p-4 d-flex flex-column"
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        width: "100%",
-        height: "100%",
-      }}
-    >
-      {/* Header */}
-      <div className="d-flex align-items-center gap-2 text-white-50 small mb-3">
-        <span aria-hidden>🗓️</span>
-        <span className="text-uppercase" style={{ letterSpacing: 0.6 }}>
-          5 GÜNLÜK TAHMİN
-        </span>
-      </div>
+    <div className="panel d-flex flex-column">
+      <span className="eyebrow">
+        <i className="bi bi-calendar3" /> 5 Günlük Tahmin
+      </span>
 
-      {/* Rows (fills remaining height) */}
-      <div className="d-flex flex-column gap-2 flex-grow-1">
-        {items.map((it, idx) => (
-          <div
-            key={idx}
-            className="d-flex align-items-center justify-content-between rounded-3 px-3 border border-white border-opacity-10 flex-grow-1"
-            style={{
-              background: "rgba(0,0,0,0.12)",
-              minHeight: 0, // taşma olursa düzeltir
-            }}
-          >
-            {/* Day */}
-            <div className="text-white-50" style={{ width: 60 }}>
-              {it.day}
-            </div>
+      <div className="daily-list">
+        {items.map((it, idx) => {
+          const hasRange =
+            typeof it.min === "number" && typeof it.max === "number";
+          const left = hasRange ? ((it.min - gMin) / span) * 100 : 0;
+          const width = hasRange ? ((it.max - it.min) / span) * 100 : 0;
 
-            {/* Icon */}
-            <div
-              className="d-flex justify-content-center"
-              style={{ width: 70 }}
-            >
+          return (
+            <div key={idx} className="daily-row">
+              <span className="daily-day">{it.day}</span>
+
               {it.icon ? (
-                <img
-                  src={it.icon}
-                  alt=""
-                  width={24}
-                  height={24}
-                  style={{ opacity: 0.95 }}
-                />
+                <img src={it.icon} alt="" />
               ) : (
-                <span className="text-white-50">•</span>
+                <span className="text-center" aria-hidden>
+                  ·
+                </span>
               )}
-            </div>
 
-            {/* Temps */}
-            <div
-              className="d-flex justify-content-end align-items-center gap-2"
-              style={{ width: 90 }}
-            >
-              <span className="text-white fw-semibold">{it.max}°</span>
-              <span className="text-white-50">{it.min}°</span>
+              <div className="range-track">
+                <span
+                  className="range-fill"
+                  style={{
+                    left: `${left}%`,
+                    width: `${Math.max(width, 6)}%`,
+                  }}
+                />
+              </div>
+
+              <div className="daily-temps">
+                {it.max}°<span className="lo">{it.min}°</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

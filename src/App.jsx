@@ -154,50 +154,67 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-vh-100 d-flex flex-column bg-dark">
+    <div className="app-shell">
+      <div className="app-orb app-orb--1" aria-hidden />
+      <div className="app-orb app-orb--2" aria-hidden />
+
       <Header>
         <Logo />
       </Header>
 
       <Main>
-        <div className="container py-3">
-          {loading && (
-            <div className="d-flex justify-content-center py-5">
-              <Loading />
-            </div>
+        <div className="container py-4 py-lg-5">
+          {!loading && !error && weather && (
+            <header className="page-intro reveal">
+              <span className="eyebrow">
+                <i className="bi bi-broadcast-pin" /> Canlı Gözlem
+              </span>
+              <h1>
+                Bugün <em>{weather.city}</em> üzerinde gökyüzü.
+              </h1>
+            </header>
           )}
 
+          {loading && <Loading />}
+
           {error && (
-            <div className="alert alert-danger" role="alert">
+            <div className="notice-error reveal" role="alert">
+              <i className="bi bi-exclamation-triangle me-2" />
               {error}
             </div>
           )}
 
-          <div className="row g-3 justify-content-center">
+          <div className="row g-3 g-lg-4 justify-content-center align-items-stretch">
             {/* SOL */}
             <div className="col-12 col-lg-4">
-              {weather && <WeatherCard weather={weather} />}
+              {weather && (
+                <div className="reveal h-100" style={{ "--d": "0.05s" }}>
+                  <WeatherCard weather={weather} />
+                </div>
+              )}
             </div>
 
             {/* ORTA */}
-            <div className="col-12 col-lg-4 d-flex flex-column">
-              <div className="flex-fill d-flex">
-                {hourlyForecast.length > 0 && (
+            <div className="col-12 col-lg-4 d-flex flex-column gap-3 gap-lg-4">
+              {hourlyForecast.length > 0 && (
+                <div className="reveal flex-fill d-flex" style={{ "--d": "0.15s" }}>
                   <HourlyForecast hourlyForecast={hourlyForecast} />
-                )}
-              </div>
+                </div>
+              )}
 
-              <div className="flex-fill d-flex mt-3">
-                {weather && (
+              {weather && (
+                <div className="reveal flex-fill d-flex" style={{ "--d": "0.25s" }}>
                   <SunTimes sunrise={weather.sunrise} sunset={weather.sunset} />
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* SAĞ */}
             <div className="col-12 col-lg-4">
               {dailyForecast.length > 0 && (
-                <DailyForecast items={dailyForecast} />
+                <div className="reveal h-100" style={{ "--d": "0.35s" }}>
+                  <DailyForecast items={dailyForecast} />
+                </div>
               )}
             </div>
           </div>

@@ -7,25 +7,25 @@ export default function StatGrid({ humidity, wind, visibility, uv }) {
       icon: "bi-droplet-fill",
       value: humidity != null ? `${humidity}%` : "—",
       label: "Nem",
-      accent: "primary",
+      tone: "humidity",
     },
     {
       icon: "bi-wind",
       value: wind != null ? `${wind} km/s` : "—",
       label: "Rüzgar",
-      accent: "info",
+      tone: "wind",
     },
     {
       icon: "bi-eye-fill",
       value: visibility != null ? `${visibility} km` : "—",
       label: "Görüş",
-      accent: "success",
+      tone: "visibility",
     },
     {
       icon: "bi-sun-fill",
       value: uv != null ? String(uv) : "—",
       label: "UV Endeksi",
-      accent: "warning",
+      tone: "uv",
     },
   ];
 

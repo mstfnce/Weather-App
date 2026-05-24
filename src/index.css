@@ -1,1 +1,718 @@
+/* =========================================================================
+   MERIDIAN — atmospheric meteorological dashboard
+   A dusk-toned, editorial weather interface.
+   ========================================================================= */
 
+:root {
+  /* Surface tones — deep midnight drifting into plum dusk */
+  --bg-0: #070a14;
+  --bg-1: #0d1322;
+  --bg-2: #141a2e;
+
+  /* Atmospheric accent glows */
+  --glow-amber: #f6a25c;
+  --glow-rose: #c06a9e;
+  --glow-cyan: #4fd6c8;
+  --glow-blue: #5b8cff;
+
+  /* Ink */
+  --ink: #f4f1ea;
+  --ink-soft: rgba(244, 241, 234, 0.66);
+  --ink-faint: rgba(244, 241, 234, 0.42);
+  --ink-ghost: rgba(244, 241, 234, 0.16);
+
+  /* Glass / structure */
+  --glass: rgba(255, 255, 255, 0.045);
+  --glass-strong: rgba(255, 255, 255, 0.07);
+  --line: rgba(244, 241, 234, 0.1);
+  --line-soft: rgba(244, 241, 234, 0.06);
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  --radius: 26px;
+  --radius-sm: 16px;
+  --shadow-deep: 0 30px 80px -30px rgba(0, 0, 0, 0.75);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--bg-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* =========================================================================
+   Atmospheric backdrop — layered dusk glows + drifting orbs + grain
+   ========================================================================= */
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+/* Static dusk gradient field */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(120% 90% at 8% -10%, rgba(91, 140, 255, 0.18), transparent 55%),
+    radial-gradient(110% 80% at 100% 0%, rgba(192, 106, 158, 0.2), transparent 50%),
+    radial-gradient(130% 100% at 50% 120%, rgba(246, 162, 92, 0.16), transparent 55%),
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+}
+
+/* Fine film grain to kill the "flat AI gradient" look */
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Two slow-drifting light orbs for living atmosphere */
+.app-orb {
+  position: fixed;
+  z-index: -2;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.app-orb--1 {
+  width: 46vw;
+  height: 46vw;
+  top: -12vw;
+  left: -8vw;
+  background: radial-gradient(circle, rgba(91, 140, 255, 0.55), transparent 70%);
+  animation: drift1 26s ease-in-out infinite alternate;
+}
+.app-orb--2 {
+  width: 40vw;
+  height: 40vw;
+  bottom: -14vw;
+  right: -6vw;
+  background: radial-gradient(circle, rgba(246, 162, 92, 0.5), transparent 70%);
+  animation: drift2 32s ease-in-out infinite alternate;
+}
+
+@keyframes drift1 {
+  to {
+    transform: translate3d(6vw, 5vw, 0) scale(1.12);
+  }
+}
+@keyframes drift2 {
+  to {
+    transform: translate3d(-5vw, -4vw, 0) scale(1.08);
+  }
+}
+
+/* =========================================================================
+   Header
+   ========================================================================= */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, rgba(7, 10, 20, 0.7), rgba(7, 10, 20, 0));
+  border-bottom: 1px solid var(--line-soft);
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 1.1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  color: #0b0f1c;
+  background: linear-gradient(140deg, var(--glow-amber), var(--glow-rose));
+  box-shadow: 0 8px 24px -8px rgba(246, 162, 92, 0.7);
+}
+.brand-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.28rem;
+  letter-spacing: -0.01em;
+}
+.brand-text em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--glow-amber);
+}
+.header-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* =========================================================================
+   Main / layout
+   ========================================================================= */
+.main-wrap {
+  flex: 1 0 auto;
+  width: 100%;
+}
+.page-intro {
+  margin: 0.4rem 0 1.6rem;
+}
+.page-intro .eyebrow {
+  margin-bottom: 0.5rem;
+}
+.page-intro h1 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.page-intro h1 em {
+  font-style: italic;
+  color: var(--glow-amber);
+}
+
+/* Mono "instrument" labels used throughout */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eyebrow i {
+  color: var(--glow-amber);
+  font-size: 0.85rem;
+}
+
+/* =========================================================================
+   Panels (glass cards)
+   ========================================================================= */
+.panel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 1.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--glass);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: var(--shadow-deep);
+  overflow: hidden;
+}
+/* Top hairline highlight for a glassy edge */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  opacity: 0.5;
+}
+
+.panel--hero {
+  background:
+    radial-gradient(140% 120% at 100% 0%, rgba(246, 162, 92, 0.16), transparent 55%),
+    var(--glass-strong);
+}
+
+/* =========================================================================
+   Hero weather card
+   ========================================================================= */
+.loc-name {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+.loc-name i {
+  color: var(--glow-rose);
+  font-size: 1rem;
+}
+.loc-sub {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 0.25rem;
+}
+.clock {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.clock-date {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: right;
+  margin-top: 0.2rem;
+}
+
+.temp-hero {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144;
+  font-weight: 300;
+  font-size: clamp(5.5rem, 16vw, 7.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: lining-nums;
+}
+.temp-unit {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.3em;
+  color: var(--ink-soft);
+  vertical-align: super;
+  margin-left: 0.05em;
+}
+.hero-icon {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.5));
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.condition {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  text-transform: capitalize;
+  margin: 0.2rem 0 0.9rem;
+}
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.3rem;
+  font-size: 0.9rem;
+  color: var(--ink-faint);
+}
+.meta-row strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.meta-row .up {
+  color: var(--glow-amber);
+}
+.meta-row .down {
+  color: var(--glow-blue);
+}
+
+.hairline {
+  height: 1px;
+  border: 0;
+  background: var(--line);
+  margin: 1.4rem 0;
+}
+
+/* Stat tiles */
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.03);
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+.stat-tile:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+}
+.stat-ico {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 1.1rem;
+}
+.stat-ico--humidity {
+  color: var(--glow-blue);
+  background: rgba(91, 140, 255, 0.14);
+}
+.stat-ico--wind {
+  color: var(--glow-cyan);
+  background: rgba(79, 214, 200, 0.14);
+}
+.stat-ico--visibility {
+  color: #9be08a;
+  background: rgba(155, 224, 138, 0.14);
+}
+.stat-ico--uv {
+  color: var(--glow-amber);
+  background: rgba(246, 162, 92, 0.16);
+}
+.stat-val {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.stat-lab {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 0.35rem;
+}
+
+/* =========================================================================
+   Hourly strip
+   ========================================================================= */
+.hour-strip {
+  display: flex;
+  gap: 0.7rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  margin-top: 1.1rem;
+}
+.hour-card {
+  flex: 1 0 auto;
+  min-width: 72px;
+  text-align: center;
+  padding: 1rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.025);
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+.hour-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.06);
+}
+.hour-card--now {
+  background: linear-gradient(160deg, rgba(246, 162, 92, 0.18), rgba(192, 106, 158, 0.1));
+  border-color: rgba(246, 162, 92, 0.35);
+}
+.hour-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.hour-card--now .hour-label {
+  color: var(--glow-amber);
+}
+.hour-card img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  margin: 0.25rem 0;
+}
+.hour-temp {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+/* =========================================================================
+   Sun times — daylight arc
+   ========================================================================= */
+.sun-arc-wrap {
+  position: relative;
+  margin: 1.2rem 0 0.4rem;
+}
+.sun-arc {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.sun-arc-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-dasharray: 3 6;
+}
+.sun-arc-fill {
+  fill: none;
+  stroke: url(#sunGrad);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.sun-dot {
+  fill: #fff6e8;
+  filter: drop-shadow(0 0 10px rgba(246, 162, 92, 0.9));
+}
+.sun-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+}
+.sun-cell {
+  text-align: center;
+  flex: 1;
+}
+.sun-cell--end {
+  text-align: right;
+}
+.sun-cell--start {
+  text-align: left;
+}
+.sun-cap {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sun-time {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.3rem;
+  margin-top: 0.15rem;
+}
+
+/* =========================================================================
+   Daily forecast — range bars
+   ========================================================================= */
+.daily-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1.1rem;
+  flex: 1;
+}
+.daily-row {
+  display: grid;
+  grid-template-columns: 3rem 2.4rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.3s ease;
+}
+.daily-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.daily-day {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.daily-row img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  justify-self: center;
+}
+.range-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.range-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--glow-blue), var(--glow-cyan) 40%, var(--glow-amber));
+}
+.daily-temps {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.daily-temps .lo {
+  color: var(--ink-faint);
+  font-weight: 400;
+  margin-left: 0.3rem;
+}
+
+/* =========================================================================
+   Loading
+   ========================================================================= */
+.meridian-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 4rem 0;
+}
+.meridian-loader .ring {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--glow-amber);
+  border-right-color: var(--glow-rose);
+  animation: spin 0.9s linear infinite;
+}
+.meridian-loader span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error notice */
+.notice-error {
+  border: 1px solid rgba(224, 90, 110, 0.35);
+  background: rgba(224, 90, 110, 0.1);
+  color: #ffb9c2;
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  font-size: 0.92rem;
+}
+
+/* =========================================================================
+   Footer
+   ========================================================================= */
+.site-footer {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--line-soft);
+  background: rgba(7, 10, 20, 0.4);
+  padding-block: 1.8rem;
+}
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+.footer-brand i {
+  color: var(--glow-amber);
+}
+.footer-note {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.social-btn {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+.social-btn:hover {
+  color: #0b0f1c;
+  background: var(--ink);
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+/* =========================================================================
+   Reveal-on-load (staggered)
+   ========================================================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  animation: reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Custom scrollbars */
+.hour-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.hour-strip::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+/* =========================================================================
+   Reduced motion
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,7 +1,8 @@
 export default function Loading() {
   return (
-    <div className="spinner-border text-primary" role="status">
-      <span className="visually-hidden">Loading...</span>
+    <div className="meridian-loader" role="status">
+      <div className="ring" aria-hidden />
+      <span>Atmosfer okunuyor…</span>
     </div>
   );
 }
