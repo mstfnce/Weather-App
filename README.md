@@ -2,6 +2,10 @@
 
 OpenWeather API ile İstanbul için güncel hava durumu, saatlik tahmin, 5 günlük tahmin ve gün doğumu/gün batımı bilgilerini gösteren React + Vite uygulaması.
 
+## Ekran Görüntüsü
+
+![React Weather App ekran görüntüsü](public/preview.png)
+
 ## Özellikler
 
 - Anlık sıcaklık, hissedilen sıcaklık, nem, rüzgar ve görüş bilgileri
